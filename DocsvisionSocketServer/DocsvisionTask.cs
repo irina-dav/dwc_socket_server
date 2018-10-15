@@ -8,28 +8,28 @@ using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 
 namespace DocsvisionSocketServer
 {
-    class DocsvisionTask
+    class DocsvisionTask: DocsvisionObject
     {
-        private readonly CardData cardData = null;      
+        //private readonly CardData cardData = null;
+        private DocsvisionDocument parentDocument = null;
+
+        private void setUp(CardData cardData)
+        {
+            this.cardData = cardData;
+            this.rdSystem = cardData.Sections[CardDefs.CardTask.System.ID].FirstRow;
+            this.rdMainInfo = cardData.Sections[CardDefs.CardTask.MainInfo.ID].FirstRow;
+            this.rdProp = cardData.Sections[new Guid("{E1DB203C-EAB1-4084-A971-A0F47FBA56FE}")].FirstRow;
+        }
 
         public DocsvisionTask(CardData cardData)
         {
-            this.cardData = cardData;
+            setUp(cardData);
         }
 
-        public string State
+        public DocsvisionTask(string taskId)
         {
-            get
-            {
-                string state = "";
-                RowData rdSystem = cardData.Sections[DocsVision.BackOffice.CardLib.CardDefs.CardTask.System.ID].FirstRow;
-                string stateId = rdSystem["State"].ToString();
-                state = DocsvisionSessionManager.RefStates.Sections[CardDefs.RefStates.States.ID].
-                    GetRow(new Guid(stateId)).
-                    ChildSections[CardDefs.RefStates.StateNames.ID].FirstRow["Name"].ToString();
-
-                return state;
-            }
+            CardData cd = DocsvisionSessionManager.Session.CardManager.GetCardData(new Guid(taskId));
+            setUp(cd);
         }
 
         public string PerformerEmployee
@@ -77,21 +77,7 @@ namespace DocsvisionSocketServer
             }
         }
 
-        public string Kind
-        {
-            get
-            {
-                string kind = "";
-                RowData rdSystem = cardData.Sections[CardDefs.CardTask.System.ID].FirstRow;
-                string kindId = rdSystem["Kind"].ToString();
-                kind = DocsvisionSessionManager.RefKinds.Sections[CardDefs.RefKinds.CardKinds.ID].
-                    GetRow(new Guid(kindId))["Name"].ToString();
-
-                return kind;
-            }
-        }
-
-        public CardData ParentDoc
+        private CardData ParentDocCardData
         {
             get
             {
@@ -104,6 +90,22 @@ namespace DocsvisionSocketServer
                 CardData parentDoc_cardData = DocsvisionSessionManager.Session.CardManager.GetCardData(parentDoc_id);
 
                 return parentDoc_cardData;
+            }
+        }
+
+        public DocsvisionDocument ParentDocument
+        {
+            get
+            {
+                if (this.parentDocument == null)
+                {
+                    DocsvisionDocument dvDoc = new DocsvisionDocument(ParentDocCardData);
+                    if (dvDoc.Kind == "Договор")
+                        this.parentDocument = new Contract(ParentDocCardData);
+                    else
+                        this.parentDocument = new DeloDoc(ParentDocCardData);
+                }
+                return this.parentDocument;
             }
         }
     }

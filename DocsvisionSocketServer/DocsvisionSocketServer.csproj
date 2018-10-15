@@ -55,7 +55,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Docsvision.cs" />
+    <Compile Include="DocsvisionDocument.cs" />
+    <Compile Include="DocsvisionDocumentFiles.cs" />
+    <Compile Include="DocsvisionDocumentHistory.cs" />
     <Compile Include="DocsvisionHelpers.cs" />
+    <Compile Include="DocsvisionObject.cs" />
     <Compile Include="DocsvisionSessionManager.cs" />
     <Compile Include="DocsvisionTask.cs" />
     <Compile Include="LogManager.cs" />

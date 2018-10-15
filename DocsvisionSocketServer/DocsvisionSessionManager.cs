@@ -13,11 +13,17 @@ namespace DocsvisionSocketServer
         private static Properties.Settings settings = Properties.Settings.Default;
 
         private static UserSession _session = null;
+
         private static CardData _refStaff = null;
         private static CardData _refStates = null;
         private static CardData _refKinds = null;
+        private static CardData _refPartners = null;
+        private static CardData _refUni = null;
+
         private static SectionData _secStaffEmployees = null;
         private static SectionData _secStaffUnits = null;
+        private static SectionData _secPartnersCompanies = null;
+        private static SectionData _secUniItems = null;
 
         private static int MEMORY_MAX_MB = 150;
         private static int GetTotalMemoryUsing()
@@ -27,6 +33,7 @@ namespace DocsvisionSocketServer
         }
 
         private static DateTime sessionLastUsing;
+
 
         public static UserSession Session
         {
@@ -81,6 +88,46 @@ namespace DocsvisionSocketServer
                 if (_secStaffUnits == null)
                     _secStaffUnits = RefStaff.Sections[CardDefs.RefStaff.Units.ID];
                 return _secStaffUnits;
+            }
+        }
+
+        public static CardData RefPartners
+        {
+            get
+            {
+                if (_refPartners == null)
+                    _refPartners = Session.CardManager.GetDictionaryData(CardDefs.RefPartners.ID);
+                return _refPartners;
+            }
+        }
+
+        public static SectionData SecPartnersCompanies
+        {
+            get
+            {
+                if (_secPartnersCompanies == null)
+                    _secPartnersCompanies = RefPartners.Sections[CardDefs.RefPartners.Companies.ID];
+                return _secPartnersCompanies;
+            }
+        }
+
+        public static CardData RefUni
+        {
+            get
+            {
+                if (_refUni == null)
+                    _refUni = Session.CardManager.GetDictionaryData(CardDefs.RefBaseUniversal.ID);
+                return _refUni;
+            }
+        }
+
+        public static SectionData SecUniItems
+        {
+            get
+            {
+                if (_secUniItems == null)
+                    _secUniItems = RefUni.Sections[CardDefs.RefBaseUniversal.Items.ID];
+                return _secUniItems;
             }
         }
 
