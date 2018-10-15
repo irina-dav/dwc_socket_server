@@ -34,6 +34,8 @@ namespace DocsvisionSocketServer
              { "FinAcquaintanceDocuments",  settings.Search_FinAcquaintanceDocuments},
         };
 
+        private static string SEARCH_CARD_TYPE = "{05E4BE46-6304-42A7-A780-FD07F7541AF0}";
+
         private static UserSession _session = null;
         private static CardData _refStaff = null;
         private static CardData _refStates = null;
@@ -276,11 +278,7 @@ namespace DocsvisionSocketServer
 
         private static CardDataCollection SearchActiveTasks(string savedSearchId, string account)
         {
-            string SEARCH_CARD_TYPE = "{05E4BE46-6304-42A7-A780-FD07F7541AF0}";
-
-            SearchCard searchCard = (SearchCard)Session.CardManager.GetDictionary(new Guid(SEARCH_CARD_TYPE));
-            SavedSearchQuery savedQuery = searchCard.GetQuery(new Guid(savedSearchId));
-            SearchQuery query = savedQuery.Export();
+            SearchQuery query = CreateSearchQueryFormSaved(savedSearchId);
             query.Parameters["paramalias1"].Value = "ps\\" + account;
 
             CardDataCollection cdColl = Session.CardManager.FindCards(query.GetXml());
@@ -289,12 +287,8 @@ namespace DocsvisionSocketServer
         }
 
         private static CardDataCollection SearchFinishedTasks(string savedSearchId, string account, DateTime date1, DateTime date2)
-        {
-            string SEARCH_CARD_TYPE = "{05E4BE46-6304-42A7-A780-FD07F7541AF0}";
-
-            SearchCard searchCard = (SearchCard)Session.CardManager.GetDictionary(new Guid(SEARCH_CARD_TYPE));
-            SavedSearchQuery savedQuery = searchCard.GetQuery(new Guid(savedSearchId));
-            SearchQuery query = savedQuery.Export();
+        {        
+            SearchQuery query = CreateSearchQueryFormSaved(savedSearchId);
             query.Parameters.First(p => p.Name == "account").Value = "ps\\" + account;
             query.Parameters.First(p => p.Name == "date1").Value = date1;
             query.Parameters.First(p => p.Name == "date2").Value = date2;
@@ -302,6 +296,13 @@ namespace DocsvisionSocketServer
             CardDataCollection cdColl = Session.CardManager.FindCards(query.GetXml());
 
             return cdColl;
+        }
+
+        private static SearchQuery CreateSearchQueryFormSaved(string savedSearchId)
+        {
+            SearchCard searchCard = (SearchCard)Session.CardManager.GetDictionary(new Guid(SEARCH_CARD_TYPE));
+            SavedSearchQuery savedQuery = searchCard.GetQuery(new Guid(savedSearchId));
+            return savedQuery.Export();
         }
 
         private static JArray GetJson_ListTaskInfo(CardDataCollection cdColl)
