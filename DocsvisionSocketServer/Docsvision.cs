@@ -13,6 +13,7 @@ using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace DocsvisionSocketServer
 {
@@ -170,31 +171,9 @@ namespace DocsvisionSocketServer
             {
                 JObject jsonObj = JObject.Parse(strJsonMessage);
                 string methodName = (string)jsonObj["methodName"];
-                switch (methodName)
-                {
-                    case "GetFileData":
-                        { return GetFileData((string)jsonObj["fileId"]); }
-                    case "GetListActiveTask_ApprovingContract":
-                        { return GetListActiveTask_ApprovingContract((string)jsonObj["account"]); }
-                    case "GetCountTasks":
-                        { return GetCountTasks((string)jsonObj["account"]); }
-                    case "GetListActiveTask_ApprovingDocument":
-                        { return GetListActiveTask_ApprovingDocument((string)jsonObj["account"]); }
-                    case "GetListActiveTask_AcquaintanceDocument":
-                        { return GetListActiveTask_AcquaintanceDocument((string)jsonObj["account"]); }
-                    case "GetListFinishedTask_ApprovingContract":
-                        { return GetListFinishedTask_ApprovingContract((string)jsonObj["account"], (DateTime)jsonObj["date1"], (DateTime)jsonObj["date2"]); }
-                    case "GetListFinishedTask_ApprovingDocument":
-                        { return GetListFinishedTask_ApprovingDocument((string)jsonObj["account"], (DateTime)jsonObj["date1"], (DateTime)jsonObj["date2"]); }
-                    case "GetListFinishedTask_AcquaintanceDocument":
-                        { return GetListFinishedTask_AcquaintanceDocument((string)jsonObj["account"], (DateTime)jsonObj["date1"], (DateTime)jsonObj["date2"]); }
-                    case "GetTaskInfo":
-                        { return GetTaskInfo((string)jsonObj["taskId"]); }
-                    case "EndTask":
-                        { return EndTask((string)jsonObj["taskId"], (string)jsonObj["result"], (string)jsonObj["comment"], (string)jsonObj["account"]); }
-                    default:
-                        { return new byte[0]; }
-                }
+                MethodInfo method = typeof(Docsvision).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+                object[] args = method.GetParameters().Select(p => Convert.ChangeType(jsonObj[p.Name], p.ParameterType)).ToArray();
+                return (byte[])method.Invoke(null, args);               
             }
             catch (Exception ex)
             {

@@ -171,7 +171,7 @@ namespace DocsvisionSocketServer
 
         public static int Main(String[] args)
         {
-            StartListening(settings.SocketAddress, settings.SocketPort);
+            StartListening(settings.SocketAddress, settings.SocketPort);            
             return 0;
         }
         
