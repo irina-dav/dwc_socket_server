@@ -36,136 +36,7 @@ namespace DocsvisionSocketServer
 
         private static string SEARCH_CARD_TYPE = "{05E4BE46-6304-42A7-A780-FD07F7541AF0}";
 
-        private static UserSession _session = null;
-        private static CardData _refStaff = null;
-        private static CardData _refStates = null;
-        private static CardData _refKinds = null;
-        private static SectionData _secStaffEmployees = null;
-        private static SectionData _secStaffUnits = null;
-
-        private static int MEMORY_MAX_MB = 150;
-        private static int GetTotalMemoryUsing()
-        {
-           var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-           return (int)(currentProcess.PrivateMemorySize64/1024/1024);
-        }
-
-        private static DateTime sessionLastUsing;
-        private static UserSession Session
-        {
-            get
-            {
-                int memoryMB = GetTotalMemoryUsing();
-                if (sessionLastUsing < DateTime.Now.AddMinutes(-1) && memoryMB > MEMORY_MAX_MB)
-                {                   
-                    LogManager.Write($"Объём занимаемой памяти ({memoryMB} МБ) превысил максимальное значение ({MEMORY_MAX_MB} МБ), сессия Docsvision будет пересоздана");
-                    Disconnect();                    
-                }
-                if (_session == null)
-                    _session = Connect();
-                try
-                {
-                    _session.Awake();                    
-                }
-                catch (Exception ex)
-                {
-                    LogManager.WriteException(ex, "Не удалось выполнить Awake сесиии, будет создана новая сессия");
-                    _session = Connect();
-                }
-                sessionLastUsing = DateTime.Now;
-                return _session;
-            }
-        }
-
-        private static CardData RefStaff
-        {
-            get
-            {
-                if (_refStaff == null)
-                    _refStaff = Session.CardManager.GetDictionaryData(CardDefs.RefStaff.ID);
-                return _refStaff;
-            }
-        }
-
-        private static SectionData SecStaffEmployees
-        {
-            get
-            {
-                if (_secStaffEmployees == null)
-                    _secStaffEmployees = RefStaff.Sections[CardDefs.RefStaff.Employees.ID];
-                return _secStaffEmployees;
-            }
-        }
-
-        private static SectionData SecStaffUnits
-        {
-            get
-            {
-                if (_secStaffUnits == null)
-                    _secStaffUnits = RefStaff.Sections[CardDefs.RefStaff.Units.ID];
-                return _secStaffUnits;
-            }
-        }
-
-        private static CardData RefStates
-        {
-            get
-            {
-                if (_refStates == null)
-                    _refStates = Session.CardManager.GetDictionaryData(CardDefs.RefStates.ID);
-                return _refStates;
-            }
-        }
-
-        private static CardData RefKinds
-        {
-            get
-            {
-                if (_refKinds == null)
-                    _refKinds = Session.CardManager.GetDictionaryData(CardDefs.RefKinds.ID);
-                return _refKinds;
-            }
-        }
-
-        private static UserSession Connect()
-        {
-            try
-            {
-                LogManager.Write("Подключаемся к серверу Docsvision");
-                SessionManager sessionManager = SessionManager.CreateInstance();
-                LogManager.Write($"{settings.ConnectionString}, {settings.BaseName}, {settings.User}");
-                sessionManager.Connect(settings.ConnectionString, settings.BaseName,settings.User, settings.Pswd);
-                UserSession userSession = sessionManager.CreateSession();                
-                LogManager.Write("Подключение к серверу Docsvision выполнено");
-                return userSession;
-            }
-            catch (Exception ex)
-            {
-                LogManager.WriteException(ex);
-                return null;
-            }
-        }
-
-        private static void Disconnect()
-        {
-            try
-            {
-                LogManager.Write("Закрываем созданное подключение к серверу Docsvision");
-                _session.Close();
-                _session = null;
-                _refStaff = null;
-                _secStaffEmployees = null;
-                _secStaffUnits = null;
-                _refStates = null;
-                _refKinds = null;
-                GC.Collect();
-                LogManager.Write("Подключение к серверу Docsvision закрыто");
-            }
-            catch (Exception ex)
-            {
-                LogManager.Write(ex.ToString());
-            };
-        }
+        public static UserSession Session => DocsvisionSessionManager.Session;
 
         public static byte[] InvokeMethod(string strJsonMessage)
         {
@@ -238,17 +109,19 @@ namespace DocsvisionSocketServer
         {
             CardData cardData = Session.CardManager.GetCardData(new Guid(taskId));
             RowData rdMainInfo = cardData.Sections[CardDefs.CardTask.MainInfo.ID].FirstRow;
-            CardData parentDoc_cardData = GetTaskParentDoc(rdMainInfo);
-            string taskKind = GetTaskKind(cardData);
+            //CardData parentDoc_cardData = GetTaskParentDoc(rdMainInfo);
+
+            DocsvisionTask dvTask = new DocsvisionTask(cardData);
+
 
             JObject jObject = new JObject {
                 {"TaskInfo", GetJson_TaskInfo(cardData) },
-                {"Files", GetJson_FilesInfo(parentDoc_cardData, taskKind) },
-                {"History", GetJson_History(parentDoc_cardData, taskKind) },
+                {"Files", GetJson_FilesInfo(dvTask) },
+                {"History", GetJson_History(dvTask) },
             };
             return Encoding.UTF8.GetBytes(jObject.ToString());
         }
-
+        
         private static byte[] GetCountTasks(string account)
         {
             JObject jObject = new JObject { };
@@ -319,24 +192,26 @@ namespace DocsvisionSocketServer
         private static JObject GetJson_TaskInfo(CardData cardData)
         {
             RowData rdMainInfo = cardData.Sections[CardDefs.CardTask.MainInfo.ID].FirstRow;
-            CardData parentDoc_cardData = GetTaskParentDoc(rdMainInfo);
+           
+            DocsvisionTask dvTask = new DocsvisionTask(cardData);
+            CardData parentDoc_cardData = dvTask.ParentDoc;
             string parentDoc_Kind = GetDocKind(parentDoc_cardData);
             JObject parentDoc_JsonInfo;
             if (parentDoc_Kind == "Договор")
                 parentDoc_JsonInfo = GetJson_ContractInfo(parentDoc_cardData);
             else
                 parentDoc_JsonInfo = GetJson_DocumentInfo(parentDoc_cardData);
-
+           
             var json = new JObject
             {
                 { "TaskId", cardData.Id.ToString() },
-                { "Kind", GetTaskKind(cardData) },
+                { "Kind", dvTask.Kind},
                 { "Desc", cardData.Description },
                 { "Name", GetFieldValueString(rdMainInfo, "Name") },
-                { "State",  GetTaskState(cardData) },
+                { "State",  dvTask.State},
                 { "EndDate",  GetFieldValueDateTime(rdMainInfo, "EndDate") },
-                { "PerformerGroup", GetTaskPerformerGroup(cardData) },
-                { "PerformerEmployee", GetTaskPerformerEmployee(cardData) },
+                { "PerformerGroup", dvTask.PerformerGroup},
+                { "PerformerEmployee", dvTask.PerformerEmployee},
                 { "Notice", "" },
                 {
                     "Document", parentDoc_JsonInfo
@@ -345,11 +220,14 @@ namespace DocsvisionSocketServer
             return json;
         }
 
-        private static JArray GetJson_FilesInfo(CardData parentDoc_cardData, string taskKind)
+        private static JArray GetJson_FilesInfo(DocsvisionTask dvTask)
         {
             JArray jArray = new JArray();
 
             List<RowData> files_rdc = new List<RowData>();
+
+            string taskKind = dvTask.Kind;
+            CardData parentDoc_cardData = dvTask.ParentDoc;
             if (taskKind == "Ознакомление")
             {
                 RowData mainInfo_rd = parentDoc_cardData.Sections[CardDefs.CardDocument.MainInfo.ID].FirstRow;
@@ -387,18 +265,20 @@ namespace DocsvisionSocketServer
             return jArray;            
         }
 
-        private static JArray GetJson_History(CardData cardData, string taskKind)
+        private static JArray GetJson_History(DocsvisionTask dvTask)
         {
             JArray jArray = new JArray();
+            string taskKind = dvTask.Kind;
+            CardData parentDoc_cardData = dvTask.ParentDoc;
 
-            string docKind = GetDocKind(cardData);
+            string docKind = GetDocKind(parentDoc_cardData);
             string secHistoryId = "";
             if (docKind == "Договор" || taskKind == "Ознакомление")
                 secHistoryId = "62176671-9806-4488-A3B9-D2D03016E252";
             else
                 secHistoryId = "48E4B96B-A083-4B89-9FD0-E3F822A82A8E";
 
-            SectionData sdCustHistory = cardData.Sections[new Guid(secHistoryId)];
+            SectionData sdCustHistory = parentDoc_cardData.Sections[new Guid(secHistoryId)];
             IEnumerable<RowData> newRdc = sdCustHistory.Rows.OrderBy(r => r["SysRowTimestamp"]);
             foreach (RowData item in newRdc)
             {
@@ -449,17 +329,6 @@ namespace DocsvisionSocketServer
         {
             RowData rdSystemInfo = cardData.Sections[CardDefs.CardDocument.System.ID].FirstRow;
             return GetFieldValueString(rdSystemInfo, "Kind_Name");
-        }
-
-        private static string GetTaskKind(CardData cardData)
-        {
-            string kind = "";
-            RowData rdSystem = cardData.Sections[CardDefs.CardTask.System.ID].FirstRow;
-            string kindId = rdSystem["Kind"].ToString();
-            kind = RefKinds.Sections[CardDefs.RefKinds.CardKinds.ID].
-                GetRow(new Guid(kindId))["Name"].ToString();
-
-            return kind;
         }
 
         private static JObject GetJson_ContractInfo(CardData cardData)
@@ -518,74 +387,9 @@ namespace DocsvisionSocketServer
             return json;
         }
 
-        private static CardData GetTaskParentDoc(RowData rdMainInfo)
-        {
-            Guid referenceList_id = new Guid(rdMainInfo["ReferenceList"].ToString());
-            CardData referenceList_cardData = Session.CardManager.GetCardData(referenceList_id);
-            RowData referenceFirstRow_rd = referenceList_cardData.Sections[CardDefs.CardReferenceList.References.ID].FirstRow;
-
-            Guid parentDoc_id = new Guid(referenceFirstRow_rd["Card"].ToString());
-            CardData parentDoc_cardData = Session.CardManager.GetCardData(parentDoc_id);
-
-            return parentDoc_cardData;
-        }
-
-        private static string GetTaskState(CardData cardData)
-        {
-            string state = "";
-            RowData rdSystem = cardData.Sections[CardDefs.CardTask.System.ID].FirstRow;
-            string stateId = rdSystem["State"].ToString();
-            state = RefStates.Sections[CardDefs.RefStates.States.ID].
-                GetRow(new Guid(stateId)).
-                ChildSections[CardDefs.RefStates.StateNames.ID].FirstRow["Name"].ToString();
-
-            return state;
-        }
-
-        private static string GetTaskPerformerEmployee(CardData cardData)
-        {
-            string performerEmployee = "";
-            SubSectionData secPerformers = cardData.Sections[CardDefs.CardTask.MainInfo.ID].FirstRow.ChildSections[CardDefs.CardTask.Performers.ID];
-            CardData refStaff = Session.CardManager.GetDictionaryData(CardDefs.RefStaff.ID);
-            SectionData secStaffEmployees = refStaff.Sections[CardDefs.RefStaff.Employees.ID];
-            try
-            {
-                var performersIds = secPerformers.Rows.Cast<RowData>().ToList().Select(r => Guid.Parse(r["Employee"].ToString()));
-                performerEmployee = string.Join("; ", performersIds.Select(i => secStaffEmployees.GetRow(i)["DisplayString"]));
-            }
-            catch
-            {
-                performerEmployee = "не удалось определить";
-            }
-            return performerEmployee;
-        }
-
-        private static string GetTaskPerformerGroup(CardData cardData)
-        {
-            string performerGroup;
-            SubSectionData secSelectedPerformers = cardData.Sections[CardDefs.CardTask.MainInfo.ID].FirstRow.ChildSections[CardDefs.CardTask.SelectedPerformers.ID];
-            CardData refStaff = Session.CardManager.GetDictionaryData(CardDefs.RefStaff.ID);
-            SectionData secStaffGroups = refStaff.Sections[CardDefs.RefStaff.AlternateHierarchy.ID];
-            try
-            {
-                if (secSelectedPerformers.FirstRow["Group"] == null)
-                    performerGroup = "";
-                else
-                {
-                    RowData rdGroup = secStaffGroups.GetRow(new Guid(secSelectedPerformers.FirstRow["Group"].ToString()));
-                    performerGroup = rdGroup["Name"].ToString();
-                }
-            }
-            catch
-            {
-                performerGroup = "не удалось определить";
-            }
-            return performerGroup;
-        }
-
         private static RowData GetEmployeeRowData(string employeeId)
         {
-            return SecStaffEmployees.GetRow(new Guid(employeeId));
+            return DocsvisionSessionManager.SecStaffEmployees.GetRow(new Guid(employeeId));
         }
 
         private static RowData GetEmployeeRowData_ByAccount(string account)
@@ -593,17 +397,17 @@ namespace DocsvisionSocketServer
             account = "ps\\" + account;
             SectionQuery query = Session.CreateSectionQuery();
             query.ConditionGroup.Conditions.AddNew("AccountName", FieldType.Unistring, ConditionOperation.Equals, account);
-            RowData rdEmployee = SecStaffEmployees.FindRows(query.GetXml())[0];
+            RowData rdEmployee = DocsvisionSessionManager.SecStaffEmployees.FindRows(query.GetXml())[0];
             return rdEmployee;
         }
 
         private static string GetEmployeeOrgName(RowData rdEmployee)
         {
             string depId = rdEmployee["ParentRowID"].ToString();
-            RowData rdDep = SecStaffUnits.GetRow(new Guid(depId));
+            RowData rdDep = DocsvisionSessionManager.SecStaffUnits.GetRow(new Guid(depId));
             while (Guid.Parse(rdDep["ParentTreeRowID"].ToString()).Equals(Guid.Empty) == false)
             {
-                rdDep = SecStaffUnits.GetRow(new Guid(rdDep["ParentTreeRowID"].ToString()));
+                rdDep = DocsvisionSessionManager.SecStaffUnits.GetRow(new Guid(rdDep["ParentTreeRowID"].ToString()));
             }
             return GetFieldValueString(rdDep, "Telex");
         }
