@@ -12,20 +12,23 @@ namespace DocsvisionSocketServer
     {
         private static Properties.Settings settings = Properties.Settings.Default;
 
-        private static UserSession _session = null;
+        private static UserSession session = null;
 
-        private static CardData _refStaff = null;
-        private static CardData _refStates = null;
-        private static CardData _refKinds = null;
-        private static CardData _refPartners = null;
-        private static CardData _refUni = null;
+        private static CardData refStaff = null;
+        private static CardData refStates = null;
+        private static CardData refKinds = null;
+        private static CardData refPartners = null;
+        private static CardData refUni = null;
 
-        private static SectionData _secStaffEmployees = null;
-        private static SectionData _secStaffUnits = null;
-        private static SectionData _secPartnersCompanies = null;
-        private static SectionData _secUniItems = null;
+        private static SectionData secStaffEmployees = null;
+        private static SectionData secStaffUnits = null;
+        private static SectionData secPartnersCompanies = null;
+        private static SectionData secUniItems = null;
+
+        private static DateTime sessionLastUsing;
 
         private static readonly int MEMORY_MAX_MB = settings.MemoryThresholdMB;
+               
 
         private static int GetTotalMemoryUsing()
         {
@@ -33,7 +36,6 @@ namespace DocsvisionSocketServer
             return (int)(currentProcess.PrivateMemorySize64 / 1024 / 1024);
         }
 
-        private static DateTime sessionLastUsing;
 
         public static UserSession Session
         {
@@ -45,19 +47,19 @@ namespace DocsvisionSocketServer
                     LogManager.Write($"Объём занимаемой памяти ({memoryMB} МБ) превысил максимальное значение ({MEMORY_MAX_MB} МБ), сессия Docsvision будет пересоздана");
                     Disconnect();
                 }
-                if (_session == null)
-                    _session = Connect();
+                if (session == null)
+                    session = Connect();
                 try
                 {
-                    _session.Awake();
+                    session.Awake();
                 }
                 catch (Exception ex)
                 {
                     LogManager.WriteException(ex, "Не удалось выполнить Awake сесиии, будет создана новая сессия");
-                    _session = Connect();
+                    session = Connect();
                 }
                 sessionLastUsing = DateTime.Now;
-                return _session;
+                return session;
             }
         }
 
@@ -65,9 +67,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_refStaff == null)
-                    _refStaff = Session.CardManager.GetDictionaryData(CardDefs.RefStaff.ID);
-                return _refStaff;
+                if (refStaff == null)
+                    refStaff = Session.CardManager.GetDictionaryData(CardDefs.RefStaff.ID);
+                return refStaff;
             }
         }
 
@@ -75,9 +77,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_secStaffEmployees == null)
-                    _secStaffEmployees = RefStaff.Sections[CardDefs.RefStaff.Employees.ID];
-                return _secStaffEmployees;
+                if (secStaffEmployees == null)
+                    secStaffEmployees = RefStaff.Sections[CardDefs.RefStaff.Employees.ID];
+                return secStaffEmployees;
             }
         }
 
@@ -85,9 +87,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_secStaffUnits == null)
-                    _secStaffUnits = RefStaff.Sections[CardDefs.RefStaff.Units.ID];
-                return _secStaffUnits;
+                if (secStaffUnits == null)
+                    secStaffUnits = RefStaff.Sections[CardDefs.RefStaff.Units.ID];
+                return secStaffUnits;
             }
         }
 
@@ -95,9 +97,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_refPartners == null)
-                    _refPartners = Session.CardManager.GetDictionaryData(CardDefs.RefPartners.ID);
-                return _refPartners;
+                if (refPartners == null)
+                    refPartners = Session.CardManager.GetDictionaryData(CardDefs.RefPartners.ID);
+                return refPartners;
             }
         }
 
@@ -105,9 +107,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_secPartnersCompanies == null)
-                    _secPartnersCompanies = RefPartners.Sections[CardDefs.RefPartners.Companies.ID];
-                return _secPartnersCompanies;
+                if (secPartnersCompanies == null)
+                    secPartnersCompanies = RefPartners.Sections[CardDefs.RefPartners.Companies.ID];
+                return secPartnersCompanies;
             }
         }
 
@@ -115,9 +117,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_refUni == null)
-                    _refUni = Session.CardManager.GetDictionaryData(CardDefs.RefBaseUniversal.ID);
-                return _refUni;
+                if (refUni == null)
+                    refUni = Session.CardManager.GetDictionaryData(CardDefs.RefBaseUniversal.ID);
+                return refUni;
             }
         }
 
@@ -125,9 +127,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_secUniItems == null)
-                    _secUniItems = RefUni.Sections[CardDefs.RefBaseUniversal.Items.ID];
-                return _secUniItems;
+                if (secUniItems == null)
+                    secUniItems = RefUni.Sections[CardDefs.RefBaseUniversal.Items.ID];
+                return secUniItems;
             }
         }
 
@@ -135,9 +137,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_refStates == null)
-                    _refStates = Session.CardManager.GetDictionaryData(CardDefs.RefStates.ID);
-                return _refStates;
+                if (refStates == null)
+                    refStates = Session.CardManager.GetDictionaryData(CardDefs.RefStates.ID);
+                return refStates;
             }
         }
 
@@ -145,9 +147,9 @@ namespace DocsvisionSocketServer
         {
             get
             {
-                if (_refKinds == null)
-                    _refKinds = Session.CardManager.GetDictionaryData(CardDefs.RefKinds.ID);
-                return _refKinds;
+                if (refKinds == null)
+                    refKinds = Session.CardManager.GetDictionaryData(CardDefs.RefKinds.ID);
+                return refKinds;
             }
         }
 
@@ -175,13 +177,13 @@ namespace DocsvisionSocketServer
             try
             {
                 LogManager.Write("Закрываем созданное подключение к серверу Docsvision");
-                _session.Close();
-                _session = null;
-                _refStaff = null;
-                _secStaffEmployees = null;
-                _secStaffUnits = null;
-                _refStates = null;
-                _refKinds = null;
+                session.Close();
+                session = null;
+                refStaff = null;
+                secStaffEmployees = null;
+                secStaffUnits = null;
+                refStates = null;
+                refKinds = null;
                 GC.Collect();
                 LogManager.Write("Подключение к серверу Docsvision закрыто");
             }

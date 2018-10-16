@@ -12,16 +12,17 @@ namespace DocsvisionSocketServer
     public sealed class HistoryType
     {
         public static readonly HistoryType ApprovingContract = new HistoryType("62176671-9806-4488-A3B9-D2D03016E252");       
-        public static readonly HistoryType ApprovingDeloDoc = new HistoryType("62176671-9806-4488-A3B9-D2D03016E252");
-        public static readonly HistoryType AcquaintanceDeloDoc = new HistoryType("48E4B96B-A083-4B89-9FD0-E3F822A82A8E");
+        public static readonly HistoryType AcquaintanceDeloDoc = new HistoryType("62176671-9806-4488-A3B9-D2D03016E252");
+        public static readonly HistoryType ApprovingDeloDoc = new HistoryType("48E4B96B-A083-4B89-9FD0-E3F822A82A8E");
+
         public string SectionId { get; private set; }
+
         public HistoryType(string sectionId)
         {
             SectionId = sectionId;
         }
     }
-
-
+   
     public class DocumentHistory
     {
         private List<HistoryRow> historyRows = new List<HistoryRow>();

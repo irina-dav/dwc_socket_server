@@ -54,7 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DocsvisionBrocker.cs" />
+    <Compile Include="DocsvisionBroker.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="FileObject.cs" />
     <Compile Include="TaskFiles.cs" />

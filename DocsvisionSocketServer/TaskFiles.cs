@@ -28,7 +28,8 @@ namespace DocsvisionSocketServer
                     if (!Guid.Parse(reference_rd["Type"].ToString()).Equals(Guid.Parse("99B86870-FCAE-4714-A6C3-C731151E2590")))
                         continue;
                     string cardId = reference_rd["Card"].ToString();
-                    CardData card_cd = Session.CardManager.GetCardData(new Guid(cardId));                    
+                    CardData card_cd = Session.CardManager.GetCardData(new Guid(cardId));
+                    files_rdc.AddRange(card_cd.Sections[CardDefs.CardDocument.Files.ID].Rows.Cast<RowData>());
                 }
             }
             else

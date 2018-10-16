@@ -1,7 +1,6 @@
 ﻿using DocsVision.Platform.ObjectManager;
 using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;

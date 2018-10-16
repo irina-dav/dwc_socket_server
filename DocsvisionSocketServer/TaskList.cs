@@ -23,8 +23,16 @@ namespace DocsvisionSocketServer
         public static readonly SavedSearch FinApprovingDocuments = new SavedSearch(settings.Search_FinApprovingDocuments, "FinApprovingDocuments");
         public static readonly SavedSearch FinAcquaintanceDocuments = new SavedSearch(settings.Search_FinAcquaintanceDocuments, "FinAcquaintanceDocuments");
 
+        public static List<SavedSearch> SearchesActiveTasks = new List<SavedSearch>()
+        {
+            AcquaintanceDocuments,
+            ApprovingContracts,
+            ApprovingDocuments,
+        };
+
         public string SavedSeacrhId { get; private set; }
         public string Name { get; private set; }
+
         public SavedSearch(string savedSeacrhId, string name)
         {
             SavedSeacrhId = savedSeacrhId;
@@ -87,7 +95,7 @@ namespace DocsvisionSocketServer
         private CardDataCollection SearchActiveTasks(string savedSearchId, string account)
         {
             SearchQuery query = CreateSearchQueryFormSaved(savedSearchId);
-            query.Parameters["paramalias1"].Value = "ps\\" + account;
+            query.Parameters["paramalias1"].Value = Helpers.BuildAccountDomain(account);
 
             CardDataCollection cdColl = Session.CardManager.FindCards(query.GetXml());
 
@@ -98,7 +106,7 @@ namespace DocsvisionSocketServer
         private CardDataCollection SearchFinishedTasks(string savedSearchId, string account, DateTime date1, DateTime date2)
         {
             SearchQuery query = CreateSearchQueryFormSaved(savedSearchId);
-            query.Parameters.First(p => p.Name == "account").Value = "ps\\" + account;
+            query.Parameters.First(p => p.Name == "account").Value = Helpers.BuildAccountDomain(account);
             query.Parameters.First(p => p.Name == "date1").Value = date1;
             query.Parameters.First(p => p.Name == "date2").Value = date2;
 

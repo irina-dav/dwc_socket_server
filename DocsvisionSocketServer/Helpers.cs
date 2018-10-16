@@ -13,6 +13,8 @@ namespace DocsvisionSocketServer
     {
         public static UserSession Session => SessionManager.Session;
 
+        private static Properties.Settings settings = Properties.Settings.Default;
+
         public static string GetRowDataFieldString(RowData rowData, string fieldName)
         {
             try
@@ -57,7 +59,7 @@ namespace DocsvisionSocketServer
 
         public static RowData GetEmployeeRowData_ByAccount(string account)
         {
-            account = "ps\\" + account;
+            account = BuildAccountDomain(account);
             SectionQuery query = Session.CreateSectionQuery();
             query.ConditionGroup.Conditions.AddNew("AccountName", FieldType.Unistring, ConditionOperation.Equals, account);
             RowData rdEmployee = SessionManager.SecStaffEmployees.FindRows(query.GetXml())[0];
@@ -72,13 +74,13 @@ namespace DocsvisionSocketServer
             {
                 rdDep = SessionManager.SecStaffUnits.GetRow(new Guid(rdDep["ParentTreeRowID"].ToString()));
             }
-            return GetRowDataFieldValueDateTime(rdDep, "Telex");
+            return GetRowDataFieldString(rdDep, "Telex");
         }
 
         public static string GetEmployeeDisplayName(string employeeId)
         {      
             RowData rdEmployee = GetEmployeeRowData(employeeId);
-            return GetRowDataFieldValueDateTime(rdEmployee, "DisplayString");
+            return GetRowDataFieldString(rdEmployee, "DisplayString");
         }
 
         public static string GetPartnerName(string partnerId)
@@ -117,6 +119,11 @@ namespace DocsvisionSocketServer
             {
                 return false;
             }
+        }
+
+        public static string BuildAccountDomain(string account)
+        {
+            return $"{settings.Domain}\\{account}";
         }
 
         public static DateTime EndOfDate(DateTime dt)

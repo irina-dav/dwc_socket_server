@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace DocsvisionSocketServer
 {
-    public class DocsvisionBrocker
+    public class DocsvisionBroker
     {
         private static readonly Properties.Settings settings = Properties.Settings.Default;
 
@@ -18,7 +18,7 @@ namespace DocsvisionSocketServer
             {
                 JObject jsonObj = JObject.Parse(strJsonMessage);
                 string methodName = (string)jsonObj["methodName"];
-                MethodInfo method = typeof(DocsvisionBrocker).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+                MethodInfo method = typeof(DocsvisionBroker).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
                 object[] args = method.GetParameters().Select(p => Convert.ChangeType(jsonObj[p.Name], p.ParameterType)).ToArray();
                 return (byte[])method.Invoke(null, args);               
             }
@@ -89,17 +89,11 @@ namespace DocsvisionSocketServer
         private static byte[] GetCountTasks(string account)
         {
             JObject jObject = new JObject { };
-
-            List<SavedSearch> searchesActiveTasks = new List<SavedSearch>()
+            
+            foreach (var search in SavedSearch.SearchesActiveTasks)
             {
-                SavedSearch.AcquaintanceDocuments,
-                SavedSearch.ApprovingContracts,
-                SavedSearch.ApprovingDocuments,
-            };
-            foreach (var seacrh in searchesActiveTasks)
-            {
-                TaskList activeTaskList = new TaskList(seacrh, account);
-                jObject.Add(seacrh.Name, activeTaskList.Count);
+                TaskList activeTaskList = new TaskList(search, account);
+                jObject.Add(search.Name, activeTaskList.Count);
             }
 
             return Encoding.UTF8.GetBytes(jObject.ToString());
