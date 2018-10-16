@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DocsvisionSocketServer
 {
-    class DocsvisionSessionManager
+    class SessionManager
     {
         private static Properties.Settings settings = Properties.Settings.Default;
 
@@ -25,7 +25,8 @@ namespace DocsvisionSocketServer
         private static SectionData _secPartnersCompanies = null;
         private static SectionData _secUniItems = null;
 
-        private static int MEMORY_MAX_MB = 150;
+        private static readonly int MEMORY_MAX_MB = settings.MemoryThresholdMB;
+
         private static int GetTotalMemoryUsing()
         {
             var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
@@ -33,7 +34,6 @@ namespace DocsvisionSocketServer
         }
 
         private static DateTime sessionLastUsing;
-
 
         public static UserSession Session
         {
@@ -156,7 +156,7 @@ namespace DocsvisionSocketServer
             try
             {
                 LogManager.Write("Подключаемся к серверу Docsvision");
-                SessionManager sessionManager = SessionManager.CreateInstance();
+                DocsVision.Platform.ObjectManager.SessionManager sessionManager = DocsVision.Platform.ObjectManager.SessionManager.CreateInstance();
                 LogManager.Write($"{settings.ConnectionString}, {settings.BaseName}, {settings.User}");
                 sessionManager.Connect(settings.ConnectionString, settings.BaseName, settings.User, settings.Pswd);
                 UserSession userSession = sessionManager.CreateSession();

@@ -9,9 +9,9 @@ using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 
 namespace DocsvisionSocketServer
 {
-    public class DocsvisionDocument : DocsvisionObject
+    public class Document : DocsvisionObject
     {
-        public DocsvisionDocument(CardData cardData)
+        public Document(CardData cardData)
         {
             this.cardData = cardData;
             this.rdMainInfo = cardData.Sections[CardDefs.CardDocument.MainInfo.ID].FirstRow;
@@ -23,21 +23,20 @@ namespace DocsvisionSocketServer
             get
             {
                 RowData rdNumber = cardData.Sections[CardDefs.CardDocument.Numbers.ID].FirstRow;
-                return DocsvisionHelpers.GetRowDataFieldString(rdNumber, "Number");
+                return Helpers.GetRowDataFieldString(rdNumber, "Number");
             }
         }
-        virtual public JObject ToJSON()
-        {
-            return new JObject();
-        }
+       
     }
 
-    public class Contract: DocsvisionDocument
+
+    public class Contract: Document
     {
         public Contract(CardData cardData): base(cardData)
         {
            this.rdProp = cardData.Sections[new Guid("{02214C9B-1B10-49A3-AA1B-CF5932C3B1E9}")].FirstRow;
         }
+
 
         override public JObject ToJSON()
         {
@@ -62,7 +61,8 @@ namespace DocsvisionSocketServer
         }
     }
 
-    public class DeloDoc : DocsvisionDocument
+
+    public class DeloDoc : Document
     {
         public DeloDoc(CardData cardData) : base(cardData)
         {

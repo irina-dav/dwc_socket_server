@@ -54,14 +54,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Docsvision.cs" />
-    <Compile Include="DocsvisionDocument.cs" />
-    <Compile Include="DocsvisionDocumentFiles.cs" />
-    <Compile Include="DocsvisionDocumentHistory.cs" />
-    <Compile Include="DocsvisionHelpers.cs" />
+    <Compile Include="DocsvisionBrocker.cs" />
+    <Compile Include="Document.cs" />
+    <Compile Include="FileObject.cs" />
+    <Compile Include="TaskFiles.cs" />
+    <Compile Include="DocumentHistory.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="DocsvisionObject.cs" />
-    <Compile Include="DocsvisionSessionManager.cs" />
-    <Compile Include="DocsvisionTask.cs" />
+    <Compile Include="SessionManager.cs" />
+    <Compile Include="Task.cs" />
     <Compile Include="LogManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -70,6 +71,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="TaskList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

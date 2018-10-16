@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace DocsvisionSocketServer
 {
@@ -17,16 +18,15 @@ namespace DocsvisionSocketServer
         protected RowData rdSystem = null;
         protected RowData rdMainInfo = null;
 
-        private static UserSession Session => DocsvisionSessionManager.Session;
+        private static UserSession Session => SessionManager.Session;
 
         public string Kind
         {
             get
             {
                 string kind = "";
-                //RowData rdSystem = cardData.Sections[CardDefs.CardTask.System.ID].FirstRow;
                 string kindId = rdSystem["Kind"].ToString();
-                kind = DocsvisionSessionManager.RefKinds.Sections[CardDefs.RefKinds.CardKinds.ID].
+                kind = SessionManager.RefKinds.Sections[CardDefs.RefKinds.CardKinds.ID].
                     GetRow(new Guid(kindId))["Name"].ToString();
 
                 return kind;
@@ -38,15 +38,15 @@ namespace DocsvisionSocketServer
             get
             {
                 string state = "";
-                //RowData rdSystem = cardData.Sections[DocsVision.BackOffice.CardLib.CardDefs.CardTask.System.ID].FirstRow;
                 string stateId = rdSystem["State"].ToString();
-                state = DocsvisionSessionManager.RefStates.Sections[CardDefs.RefStates.States.ID].
+                state = SessionManager.RefStates.Sections[CardDefs.RefStates.States.ID].
                     GetRow(new Guid(stateId)).
                     ChildSections[CardDefs.RefStates.StateNames.ID].FirstRow["Name"].ToString();
 
                 return state;
             }
         }
+
 
         public string Id
         {
@@ -56,6 +56,7 @@ namespace DocsvisionSocketServer
             }
         }
 
+
         public string Description
         {
             get
@@ -63,47 +64,60 @@ namespace DocsvisionSocketServer
                 return cardData.Description;
             }
         }
+
+
+        virtual public JObject ToJSON()
+        {
+            return new JObject();
+        }
+
+
         public SectionData GetSectionData(string sectionId)
         {
             return cardData.Sections[new Guid(sectionId)];
         }
 
+
         public string GetMainInfoFieldString(string fieldName)
         {
-            return DocsvisionHelpers.GetRowDataFieldString(rdMainInfo, fieldName);
+            return Helpers.GetRowDataFieldString(rdMainInfo, fieldName);
         }
+
 
         public string GetPropertyFieldString(string fieldName)
         {
-            return DocsvisionHelpers.GetRowDataFieldString(rdProp, fieldName);
+            return Helpers.GetRowDataFieldString(rdProp, fieldName);
         }
 
         public string GetMainInfoFieldDateTime(string fieldName)
         {
-            return DocsvisionHelpers.GetRowDataFieldValueDateTime(rdMainInfo, fieldName);
+            return Helpers.GetRowDataFieldValueDateTime(rdMainInfo, fieldName);
         }
+
 
         public string GetPropertyFieldDateTime(string fieldName)
         {
-            return DocsvisionHelpers.GetRowDataFieldValueDateTime(rdProp, fieldName);
+            return Helpers.GetRowDataFieldValueDateTime(rdProp, fieldName);
         }
+
 
         public string GetPropertyPartnerName(string fieldName)
         {
             string partnerId = GetPropertyFieldString(fieldName);
-            return DocsvisionHelpers.GetPartnerName(partnerId);
+            return Helpers.GetPartnerName(partnerId);
         }
 
         public string GetPropertyItemName(string fieldName)
         {
             string itemId = GetPropertyFieldString(fieldName);
-            return DocsvisionHelpers.GetItemName(itemId);           
+            return Helpers.GetItemName(itemId);           
         }
+
 
         public string GetPropertyEmployeeName(string fieldName)
         {
             string employeeId = GetPropertyFieldString(fieldName);
-            return DocsvisionHelpers.GetEmployeeDisplayName(employeeId);
+            return Helpers.GetEmployeeDisplayName(employeeId);
         }
     }
 }

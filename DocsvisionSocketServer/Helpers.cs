@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace DocsvisionSocketServer
 {
-    class DocsvisionHelpers
+    class Helpers
     {
-        public static UserSession Session => DocsvisionSessionManager.Session;
+        public static UserSession Session => SessionManager.Session;
 
         public static string GetRowDataFieldString(RowData rowData, string fieldName)
         {
@@ -52,7 +52,7 @@ namespace DocsvisionSocketServer
 
         public static RowData GetEmployeeRowData(string employeeId)
         {
-            return DocsvisionSessionManager.SecStaffEmployees.GetRow(new Guid(employeeId));
+            return SessionManager.SecStaffEmployees.GetRow(new Guid(employeeId));
         }
 
         public static RowData GetEmployeeRowData_ByAccount(string account)
@@ -60,17 +60,17 @@ namespace DocsvisionSocketServer
             account = "ps\\" + account;
             SectionQuery query = Session.CreateSectionQuery();
             query.ConditionGroup.Conditions.AddNew("AccountName", FieldType.Unistring, ConditionOperation.Equals, account);
-            RowData rdEmployee = DocsvisionSessionManager.SecStaffEmployees.FindRows(query.GetXml())[0];
+            RowData rdEmployee = SessionManager.SecStaffEmployees.FindRows(query.GetXml())[0];
             return rdEmployee;
         }
 
         public static string GetEmployeeOrgName(RowData rdEmployee)
         {
             string depId = rdEmployee["ParentRowID"].ToString();
-            RowData rdDep = DocsvisionSessionManager.SecStaffUnits.GetRow(new Guid(depId));
+            RowData rdDep = SessionManager.SecStaffUnits.GetRow(new Guid(depId));
             while (Guid.Parse(rdDep["ParentTreeRowID"].ToString()).Equals(Guid.Empty) == false)
             {
-                rdDep = DocsvisionSessionManager.SecStaffUnits.GetRow(new Guid(rdDep["ParentTreeRowID"].ToString()));
+                rdDep = SessionManager.SecStaffUnits.GetRow(new Guid(rdDep["ParentTreeRowID"].ToString()));
             }
             return GetRowDataFieldValueDateTime(rdDep, "Telex");
         }
@@ -83,14 +83,46 @@ namespace DocsvisionSocketServer
 
         public static string GetPartnerName(string partnerId)
         {
-            RowData rdPartner = DocsvisionSessionManager.SecPartnersCompanies.GetRow(new Guid(partnerId));
+            RowData rdPartner = SessionManager.SecPartnersCompanies.GetRow(new Guid(partnerId));
             return GetRowDataFieldString(rdPartner, "Name");
         }
 
         public static string GetItemName(string itemId)
         {
-            RowData rdUniItem = DocsvisionSessionManager.SecUniItems.GetRow(new Guid(itemId));
+            RowData rdUniItem = SessionManager.SecUniItems.GetRow(new Guid(itemId));
             return GetRowDataFieldString(rdUniItem, "Name");
         }
+
+        public static bool SetFieldValue(RowData rowData, string fieldName, string fieldValue)
+        {
+            try
+            {
+                rowData[fieldName] = fieldValue;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool SetFieldValue(RowData rowData, string fieldName, bool fieldValue)
+        {
+            try
+            {
+                rowData[fieldName] = fieldValue;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static DateTime EndOfDate(DateTime dt)
+        {
+            return dt.Date.AddDays(1).AddSeconds(-1);
+        }
+
     }
 }

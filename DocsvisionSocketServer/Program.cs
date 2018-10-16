@@ -134,7 +134,7 @@ namespace DocsvisionSocketServer
             // Convert the string data to byte data using ASCII encoding.  
             // byte[] byteData = Encoding.ASCII.GetBytes(dataFromClient);
             dataFromClient = dataFromClient.Replace("<EOF>", "");           
-            byte[] byteDataDocsvision = Docsvision.InvokeMethod(dataFromClient);            
+            byte[] byteDataDocsvision = DocsvisionBrocker.InvokeMethod(dataFromClient);            
             byte[] byteData = new byte[4 + byteDataDocsvision.Length];
             byte[] dataDocvisionLen = BitConverter.GetBytes(byteDataDocsvision.Length);      //e.g. lenght of file
 
