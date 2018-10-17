@@ -1,23 +1,22 @@
-﻿using DocsVision.Platform.ObjectManager;
-using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using Newtonsoft.Json.Linq;
+using DocsVision.Platform.ObjectManager;
+using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 
 namespace DocsvisionSocketServer
 {
-    public class DocsvisionObject
+    public class PrimaryObject
     {
         protected CardData cardData = null;
         protected RowData rdProp = null;       
         protected RowData rdSystem = null;
         protected RowData rdMainInfo = null;
 
-        private static UserSession Session => SessionManager.Session;
+        protected static UserSession Session => SessionManager.Session;
+
+        public string Id => cardData.Id.ToString("B");
+
+        public string Description => cardData.Description;
 
         public string Kind
         {
@@ -46,76 +45,51 @@ namespace DocsvisionSocketServer
             }
         }
 
-
-        public string Id
-        {
-            get
-            {
-                return cardData.Id.ToString("B");
-            }
-        }
-
-
-        public string Description
-        {
-            get
-            {
-                return cardData.Description;
-            }
-        }
-
-
         virtual public JObject ToJSON()
         {
             return new JObject();
         }
-
-
+    
         public SectionData GetSectionData(string sectionId)
         {
             return cardData.Sections[new Guid(sectionId)];
         }
 
-
-        public string GetMainInfoFieldString(string fieldName)
+        public string GetMainFieldValueString(string fieldName)
         {
-            return Helpers.GetRowDataFieldString(rdMainInfo, fieldName);
+            return Helpers.GetFieldValueString(rdMainInfo, fieldName);
         }
 
-
-        public string GetPropertyFieldString(string fieldName)
+        public string GetPropertyFieldValueString(string fieldName)
         {
-            return Helpers.GetRowDataFieldString(rdProp, fieldName);
+            return Helpers.GetFieldValueString(rdProp, fieldName);
         }
 
-        public string GetMainInfoFieldDateTime(string fieldName)
+        public string GetMainFieldValueFormattedDateTime(string fieldName)
         {
-            return Helpers.GetRowDataFieldValueDateTime(rdMainInfo, fieldName);
+            return Helpers.GetFieldValueFormattedDateTime(rdMainInfo, fieldName);
         }
 
-
-        public string GetPropertyFieldDateTime(string fieldName)
+        public string GetPropertyFieldValueFormattedDateTime(string fieldName)
         {
-            return Helpers.GetRowDataFieldValueDateTime(rdProp, fieldName);
+            return Helpers.GetFieldValueFormattedDateTime(rdProp, fieldName);
         }
-
 
         public string GetPropertyPartnerName(string fieldName)
         {
-            string partnerId = GetPropertyFieldString(fieldName);
+            string partnerId = GetPropertyFieldValueString(fieldName);
             return Helpers.GetPartnerName(partnerId);
         }
 
         public string GetPropertyItemName(string fieldName)
         {
-            string itemId = GetPropertyFieldString(fieldName);
+            string itemId = GetPropertyFieldValueString(fieldName);
             return Helpers.GetItemName(itemId);           
         }
 
-
         public string GetPropertyEmployeeName(string fieldName)
         {
-            string employeeId = GetPropertyFieldString(fieldName);
+            string employeeId = GetPropertyFieldValueString(fieldName);
             return Helpers.GetEmployeeDisplayName(employeeId);
         }
     }

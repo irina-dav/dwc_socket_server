@@ -54,13 +54,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DocsvisionBroker.cs" />
+    <Compile Include="Broker.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="FileObject.cs" />
     <Compile Include="TaskFiles.cs" />
     <Compile Include="DocumentHistory.cs" />
     <Compile Include="Helpers.cs" />
-    <Compile Include="DocsvisionObject.cs" />
+    <Compile Include="PrimaryObject.cs" />
     <Compile Include="SessionManager.cs" />
     <Compile Include="Task.cs" />
     <Compile Include="LogManager.cs" />

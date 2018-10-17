@@ -1,10 +1,6 @@
-﻿using DocsVision.Platform.ObjectManager;
+﻿using System;
+using DocsVision.Platform.ObjectManager;
 using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DocsvisionSocketServer
 {
@@ -28,14 +24,12 @@ namespace DocsvisionSocketServer
         private static DateTime sessionLastUsing;
 
         private static readonly int MEMORY_MAX_MB = settings.MemoryThresholdMB;
-               
-
+   
         private static int GetTotalMemoryUsing()
         {
             var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
             return (int)(currentProcess.PrivateMemorySize64 / 1024 / 1024);
         }
-
 
         public static UserSession Session
         {

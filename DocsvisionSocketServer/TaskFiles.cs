@@ -1,27 +1,24 @@
-﻿using DocsVision.Platform.ObjectManager;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using DocsVision.Platform.ObjectManager;
 using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 
 namespace DocsvisionSocketServer
 {
     class TaskFiles
     {
-        public static UserSession Session => SessionManager.Session;
-
-        List<RowData> files_rdc = new List<RowData>();
-        List<FileRow> filesRows = new List<FileRow>();
+        private static UserSession Session => SessionManager.Session;       
+        private List<FileRow> filesRows = new List<FileRow>();
 
         public TaskFiles(Task dvTask)
         {
+            List<RowData> files_rdc = new List<RowData>();
             Document dvParentDoc = dvTask.ParentDocument;
             if (dvTask.Kind == "Ознакомление")
             {                
-                string refListId = dvParentDoc.GetMainInfoFieldString("ReferenceList");
+                string refListId = dvParentDoc.GetMainFieldValueString("ReferenceList");
                 CardData cardReferenceList_cd = Session.CardManager.GetCardData(new Guid(refListId));
                 foreach (RowData reference_rd in cardReferenceList_cd.Sections[CardDefs.CardReferenceList.References.ID].Rows)
                 {
@@ -48,16 +45,12 @@ namespace DocsvisionSocketServer
             JArray jArray = new JArray();
             foreach (FileRow row in filesRows)
             {
-                jArray.Add(new JObject
-                {
-                    { "FileID", row.fileId },
-                    { "FileName", row.fileName },
-                });
+                jArray.Add(row.ToJSON());
             }
             return jArray;
         }
-
     }
+
 
     class FileRow
     {
@@ -72,6 +65,16 @@ namespace DocsvisionSocketServer
             this.fileName = mainInfo_rd["Name"].ToString();
             RowData version_rd = versionedFileCard_cardData.Sections[new Guid("F831372E-8A76-4ABC-AF15-D86DC5FFBE12")].Rows.OrderBy(r => int.Parse(r["Version"].ToString())).First();
             this.fileId = version_rd["FileID"].ToString();
+        }
+
+        public JObject ToJSON()
+        {
+            var json = new JObject
+            {
+                { "FileID", fileId },
+                { "FileName", fileName },
+            };
+            return json;
         }
     }
 }

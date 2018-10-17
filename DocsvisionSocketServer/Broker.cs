@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
@@ -7,10 +6,9 @@ using System.Reflection;
 
 namespace DocsvisionSocketServer
 {
-    public class DocsvisionBroker
+    public class Broker
     {
         private static readonly Properties.Settings settings = Properties.Settings.Default;
-
 
         public static byte[] InvokeMethod(string strJsonMessage)
         {
@@ -18,7 +16,7 @@ namespace DocsvisionSocketServer
             {
                 JObject jsonObj = JObject.Parse(strJsonMessage);
                 string methodName = (string)jsonObj["methodName"];
-                MethodInfo method = typeof(DocsvisionBroker).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+                MethodInfo method = typeof(Broker).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
                 object[] args = method.GetParameters().Select(p => Convert.ChangeType(jsonObj[p.Name], p.ParameterType)).ToArray();
                 return (byte[])method.Invoke(null, args);               
             }
@@ -27,9 +25,7 @@ namespace DocsvisionSocketServer
                 LogManager.WriteException(ex);
                 return new byte[0];
             }
-
         }
-
 
         private static byte[] GetFileData(string fileId)
         {
@@ -37,13 +33,11 @@ namespace DocsvisionSocketServer
             return file.AsByteArray();
         }
 
-
         private static byte[] GetListActiveTask_ApprovingContract(string account)
         {
             TaskList activeTaskList = new TaskList(SavedSearch.ApprovingContracts, account);
             return Encoding.UTF8.GetBytes(activeTaskList.ToJSON().ToString());
         }
-
 
         private static byte[] GetListActiveTask_AcquaintanceDocument(string account)
         {           
@@ -51,13 +45,11 @@ namespace DocsvisionSocketServer
             return Encoding.UTF8.GetBytes(activeTaskList.ToJSON().ToString());
         }
 
-
         private static byte[] GetListActiveTask_ApprovingDocument(string account)
         {
             TaskList activeTaskList = new TaskList(SavedSearch.ApprovingDocuments, account);
             return Encoding.UTF8.GetBytes(activeTaskList.ToJSON().ToString());
         }
-
 
         private static byte[] GetListFinishedTask_ApprovingContract(string account, DateTime date1, DateTime date2)
         {
@@ -65,13 +57,11 @@ namespace DocsvisionSocketServer
             return Encoding.UTF8.GetBytes(finishedTaskList.ToJSON().ToString());
         }
 
-
         private static byte[] GetListFinishedTask_ApprovingDocument(string account, DateTime date1, DateTime date2)
         {
             TaskList finishedTaskList = new TaskList(SavedSearch.FinApprovingDocuments, account, date1, date2);
             return Encoding.UTF8.GetBytes(finishedTaskList.ToJSON().ToString());
         }
-
 
         private static byte[] GetListFinishedTask_AcquaintanceDocument(string account, DateTime date1, DateTime date2)
         {
@@ -79,7 +69,6 @@ namespace DocsvisionSocketServer
             return Encoding.UTF8.GetBytes(finishedTaskList.ToJSON().ToString());
         }
    
-
         private static byte[] GetTaskInfo(string taskId)
         {
             Task dvTask = new Task(taskId);           
@@ -98,7 +87,6 @@ namespace DocsvisionSocketServer
 
             return Encoding.UTF8.GetBytes(jObject.ToString());
         }
-
 
         private static byte[] EndTask(string taskId, string result, string comment, string account)
         {

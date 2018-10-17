@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-
 namespace DocsvisionSocketServer
 {
-   
     // State object for reading client data asynchronously  
     public class StateObject
     {
@@ -24,16 +19,13 @@ namespace DocsvisionSocketServer
         public StringBuilder sb = new StringBuilder();
     }
 
+
     public class AsynchronousSocketListener
     {
         private static Properties.Settings settings = Properties.Settings.Default;
 
         // Thread signal.  
         public static ManualResetEvent allDone = new ManualResetEvent(false);
-
-        public AsynchronousSocketListener()
-        {
-        }
 
         public static void StartListening(string ipAddress, int port)
         {
@@ -63,7 +55,6 @@ namespace DocsvisionSocketServer
                     // Wait until a connection is made before continuing.  
                     allDone.WaitOne();
                 }
-
             }
             catch (Exception e)
             {
@@ -84,10 +75,9 @@ namespace DocsvisionSocketServer
             Socket handler = listener.EndAccept(ar);
 
             // Create the state object.  
-            StateObject state = new StateObject();
-            state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReadCallback), state);
+            StateObject state = new StateObject { workSocket = handler };
+
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
         }
 
         public static void ReadCallback(IAsyncResult ar)
@@ -105,16 +95,13 @@ namespace DocsvisionSocketServer
             if (bytesRead > 0)
             {
                 // There  might be more data, so store the data received so far.  
-                state.sb.Append(Encoding.UTF8.GetString(
-                    state.buffer, 0, bytesRead));
+                state.sb.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read   
-                // more data.  
+                // Check for end-of-file tag. If it is not there, read more data.  
                 content = state.sb.ToString();
                 if (content.IndexOf("<EOF>") > -1)
                 {
-                    // All the data has been read from the   
-                    // client. Display it on the console.  
+                    // All the data has been read from the client. Display it on the console.  
                     LogManager.Write($"Read {content.Length} bytes from socket. Data : {content}");
                     // Echo the data back to the client.  
                     Send(handler, content);
@@ -123,18 +110,15 @@ namespace DocsvisionSocketServer
                 {
                     // Not all data received. Get more.  
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
+                        new AsyncCallback(ReadCallback), state);
                 }
             }
         }
 
         private static void Send(Socket handler, String dataFromClient)
         {
-            // method|param1:value1;param2:value2
-            // Convert the string data to byte data using ASCII encoding.  
-            // byte[] byteData = Encoding.ASCII.GetBytes(dataFromClient);
             dataFromClient = dataFromClient.Replace("<EOF>", "");           
-            byte[] byteDataDocsvision = DocsvisionBroker.InvokeMethod(dataFromClient);            
+            byte[] byteDataDocsvision = Broker.InvokeMethod(dataFromClient);            
             byte[] byteData = new byte[4 + byteDataDocsvision.Length];
             byte[] dataDocvisionLen = BitConverter.GetBytes(byteDataDocsvision.Length);      //e.g. lenght of file
 
@@ -143,9 +127,8 @@ namespace DocsvisionSocketServer
 
             LogManager.Write($"byteDataDocsvision.Length={byteDataDocsvision.Length}, " +               
                 $"byteData.Length={byteData.Length}");
-            
-            // Begin sending the data to the remote device.  
-            handler.BeginSend(byteData, 0, byteData.Length, 0,
+              
+            handler.BeginSend(byteData, 0, byteData.Length, 0, 
                 new AsyncCallback(SendCallback), handler);
         }
 
@@ -173,7 +156,6 @@ namespace DocsvisionSocketServer
         {
             StartListening(settings.SocketAddress, settings.SocketPort);            
             return 0;
-        }
-        
+        }        
     }
 }

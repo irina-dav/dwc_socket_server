@@ -1,17 +1,13 @@
-﻿using DocsVision.Platform.ObjectManager;
-using DocsVision.Platform.ObjectManager.SearchModel;
-using DocsVision.Platform.ObjectManager.SystemCards;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using DocsVision.Platform.ObjectManager;
+using DocsVision.Platform.ObjectManager.SearchModel;
+using DocsVision.Platform.ObjectManager.SystemCards;
 
 namespace DocsvisionSocketServer
 {
-  
-
     public sealed class SavedSearch
     {
         private static Properties.Settings settings = Properties.Settings.Default;
@@ -41,13 +37,12 @@ namespace DocsvisionSocketServer
     }
 
     class TaskList
-    {
-        private List<Task> tasks = new List<Task>();
-
+    {     
         private static UserSession Session => SessionManager.Session;
 
         private const string SEARCH_CARD_TYPE = "{05E4BE46-6304-42A7-A780-FD07F7541AF0}";
 
+        private List<Task> tasks = new List<Task>();
 
         public TaskList(SavedSearch savedSearch, string account, DateTime date1, DateTime date2)
         {
@@ -55,31 +50,13 @@ namespace DocsvisionSocketServer
             FetchTasksFromCardDataColl(cdColl);
         }
 
-
         public TaskList(SavedSearch savedSearch, string account)
         {
             CardDataCollection cdColl = SearchActiveTasks(savedSearch.SavedSeacrhId, account);
             FetchTasksFromCardDataColl(cdColl);
         }
 
-
-        private void FetchTasksFromCardDataColl(CardDataCollection cdColl)
-        {
-            foreach (CardData cd in cdColl)
-            {
-                tasks.Add(new Task(cd));
-            }
-        }
-
-
-        public int Count
-        {
-            get
-            {
-                return tasks.Count();
-            }
-        }
-
+        public int Count =>  tasks.Count();
 
         public JArray ToJSON()
         {
@@ -90,7 +67,14 @@ namespace DocsvisionSocketServer
             }
             return jArray;
         }
-       
+
+        private void FetchTasksFromCardDataColl(CardDataCollection cdColl)
+        {
+            foreach (CardData cd in cdColl)
+            {
+                tasks.Add(new Task(cd));
+            }
+        }
 
         private CardDataCollection SearchActiveTasks(string savedSearchId, string account)
         {
@@ -101,7 +85,6 @@ namespace DocsvisionSocketServer
 
             return cdColl;
         }
-
 
         private CardDataCollection SearchFinishedTasks(string savedSearchId, string account, DateTime date1, DateTime date2)
         {
@@ -115,14 +98,11 @@ namespace DocsvisionSocketServer
             return cdColl;
         }
 
-
         private SearchQuery CreateSearchQueryFormSaved(string savedSearchId)
         {
             SearchCard searchCard = (SearchCard)Session.CardManager.GetDictionary(new Guid(SEARCH_CARD_TYPE));
             SavedSearchQuery savedQuery = searchCard.GetQuery(new Guid(savedSearchId));
             return savedQuery.Export();
-        }
-
-        
+        }        
     }
 }

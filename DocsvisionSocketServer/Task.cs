@@ -1,20 +1,16 @@
-﻿using DocsVision.Platform.ObjectManager;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using DocsVision.Platform.ObjectManager;
 using CardDefs = DocsVision.BackOffice.CardLib.CardDefs;
 
 namespace DocsvisionSocketServer
 {
-    class Task: DocsvisionObject
+    class Task: PrimaryObject
     {
         private DocumentHistory documentHistory = null;
         private TaskFiles taskFiles = null;
         private Document parentDocument = null;
-
 
         private void SetUp(CardData cardData)
         {
@@ -24,12 +20,10 @@ namespace DocsvisionSocketServer
             this.rdProp = cardData.Sections[new Guid("{E1DB203C-EAB1-4084-A971-A0F47FBA56FE}")].FirstRow;
         }
 
-
         public Task(CardData cardData)
         {
             SetUp(cardData);
         }
-
 
         public Task(string taskId)
         {
@@ -37,7 +31,6 @@ namespace DocsvisionSocketServer
             SetUp(cd);
         }
   
-
         override public JObject ToJSON()
         {        
             JObject jObject = new JObject {
@@ -56,9 +49,9 @@ namespace DocsvisionSocketServer
                 { "TaskId", Id },
                 { "Kind", Kind},
                 { "Desc", Description },
-                { "Name", GetMainInfoFieldString("Name") },
+                { "Name", GetMainFieldValueString("Name") },
                 { "State",  State},
-                { "EndDate",   GetMainInfoFieldDateTime("EndDate") },
+                { "EndDate",   GetMainFieldValueFormattedDateTime("EndDate") },
                 { "PerformerGroup", PerformerGroup},
                 { "PerformerEmployee", PerformerEmployee},
                 { "Notice", "" },
@@ -79,7 +72,6 @@ namespace DocsvisionSocketServer
             }
         }
 
-
         public DocumentHistory History
         {
             get
@@ -92,7 +84,6 @@ namespace DocsvisionSocketServer
             }
         }
 
-
         protected HistoryType GetHistoryType()
         {
             HistoryType historyType = null;
@@ -104,7 +95,6 @@ namespace DocsvisionSocketServer
                 historyType = HistoryType.ApprovingDeloDoc;
             return historyType;
         }
-
 
         public string PerformerEmployee
         {
@@ -125,7 +115,6 @@ namespace DocsvisionSocketServer
                 return performerEmployee;
             }
         }
-
 
         public string PerformerGroup
         {
@@ -152,46 +141,43 @@ namespace DocsvisionSocketServer
             }
         }
 
-
         private CardData ParentDocCardData
         {
             get
             {
                 RowData rdMainInfo = cardData.Sections[CardDefs.CardTask.MainInfo.ID].FirstRow;
                 Guid referenceList_id = new Guid(rdMainInfo["ReferenceList"].ToString());
-                CardData referenceList_cardData = SessionManager.Session.CardManager.GetCardData(referenceList_id);
+                CardData referenceList_cardData = Session.CardManager.GetCardData(referenceList_id);
                 RowData referenceFirstRow_rd = referenceList_cardData.Sections[CardDefs.CardReferenceList.References.ID].FirstRow;
 
                 Guid parentDoc_id = new Guid(referenceFirstRow_rd["Card"].ToString());
-                CardData parentDoc_cardData = SessionManager.Session.CardManager.GetCardData(parentDoc_id);
+                CardData parentDoc_cardData = Session.CardManager.GetCardData(parentDoc_id);
 
                 return parentDoc_cardData;
             }
         }
 
-
         public Document ParentDocument
         {
             get
             {
-                if (this.parentDocument == null)
+                if (parentDocument == null)
                 {
                     Document dvDoc = new Document(ParentDocCardData);
                     if (dvDoc.Kind == "Договор")
-                        this.parentDocument = new Contract(ParentDocCardData);
+                        parentDocument = new Contract(ParentDocCardData);
                     else
-                        this.parentDocument = new DeloDoc(ParentDocCardData);
+                        parentDocument = new DeloDoc(ParentDocCardData);
                 }
-                return this.parentDocument;
+                return parentDocument;
             }
         }
-
 
         public void EndTask(string account, string result, string comment)
         {
             Helpers.SetFieldValue(rdMainInfo, "ExecutionStopped", true);
             Helpers.SetFieldValue(rdMainInfo, "EndDateActual", DateTime.Now.ToString());
-            Helpers.SetFieldValue(rdMainInfo, "CompletedUser", Helpers.GetEmployeeRowData_ByAccount(account)["RowID"].ToString());
+            Helpers.SetFieldValue(rdMainInfo, "CompletedUser", Helpers.GetEmployeeRowDataByAccount(account)["RowID"].ToString());
 
             Helpers.SetFieldValue(rdProp, "custResult", result);
             Helpers.SetFieldValue(rdProp, "custComment", comment);

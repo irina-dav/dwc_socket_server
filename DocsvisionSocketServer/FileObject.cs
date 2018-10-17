@@ -1,10 +1,6 @@
-﻿using DocsVision.Platform.ObjectManager;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DocsVision.Platform.ObjectManager;
 
 namespace DocsvisionSocketServer
 {
@@ -18,7 +14,6 @@ namespace DocsvisionSocketServer
         {
             this.fileData = Session.FileManager.GetFile(new Guid(fileId));
         }
-
        
         public byte[] AsByteArray()
         {           
