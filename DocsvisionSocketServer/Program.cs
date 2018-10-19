@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 
 namespace DocsvisionSocketServer
-{
+{   
     // State object for reading client data asynchronously  
     public class StateObject
     {
@@ -22,8 +22,6 @@ namespace DocsvisionSocketServer
 
     public class AsynchronousSocketListener
     {
-        private static Properties.Settings settings = Properties.Settings.Default;
-
         // Thread signal.  
         public static ManualResetEvent allDone = new ManualResetEvent(false);
 
@@ -154,7 +152,8 @@ namespace DocsvisionSocketServer
 
         public static int Main(String[] args)
         {
-            StartListening(settings.SocketAddress, settings.SocketPort);            
+            Properties.Settings settings = Properties.Settings.Default;
+            StartListening(settings.SocketAddress, settings.SocketPort);
             return 0;
         }        
     }

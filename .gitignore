@@ -1,5 +1,5 @@
 #Ignore settings, config
-settings.*
+*.settings
 *.config
 
 #Ignore files build by Visual Studio

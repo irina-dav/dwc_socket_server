@@ -47,6 +47,7 @@
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -57,6 +58,7 @@
     <Compile Include="Broker.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="FileObject.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="TaskFiles.cs" />
     <Compile Include="DocumentHistory.cs" />
     <Compile Include="Helpers.cs" />
